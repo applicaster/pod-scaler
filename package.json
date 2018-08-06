@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node app.js",
+    "test": "mocha --timeout 25000 --require babel-core/register"
+  },
+  "babel": {
+    "presets": [
+      "stage-3",
+      "latest"
+    ]
+  },
+  "author": "Applicaster Ltd",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.3",
+    "k8s": "^0.4.15",
+    "kubernetes-client": "^5.3.1",
+    "mocha": "^5.2.0",
+    "node-fetch": "^2.2.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.0.0-beta.55",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-latest": "^6.24.0",
+    "babel-preset-stage-2": "^6.22.0",
+    "babel-runtime": "^6.26.0",
+    "serverless-babel-plugin": "^0.1.3",
+    "serverless-offline": "^3.13.1",
+    "source-map-support": "^0.5.3"
+  }
+}

@@ -1,0 +1,11 @@
+[environments]
+  [environments.development]
+    name = "pod-scaler"
+    namespace = "monitoring"
+    wait = true
+    watch = true
+    watch-delay = 2
+    auto-connect = false
+    dockerfile = ""
+    chart = ""
+    override-ports = ["8080:8080"]
