@@ -1,4 +1,4 @@
-FROM node:10.8
+FROM node:8.4.0
 ENV PORT 8080
 EXPOSE 8080
 
