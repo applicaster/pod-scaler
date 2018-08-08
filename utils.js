@@ -16,7 +16,7 @@ function scaleDeployment(obj){
     return new Promise(resolve => {
         const replica = {
                 spec: {
-                    replicas: obj.desiredReplices
+                    replicas: obj.desiredReplicas
                 }
             };
         obj.replica = replica;
@@ -26,21 +26,23 @@ function scaleDeployment(obj){
         })
     });
 }
-function isDeplymentValidToScale(obj){
-
-    if(obj && obj.labels && !isNaN(obj.deployment.body.spec.replicas) 
-                         && !isNaN(obj.labels.scaleChange) 
-                         && !isNaN(obj.labels.scaleMax) 
-                         && !isNaN(obj.labels.scaleMin)){
-        return Promise.resolve(obj);
+function isDeploymentValidToScale(obj){
+    if(!obj || !obj.labels || isNaN(obj.deployment.body.spec.replicas) 
+                           || isNaN(obj.labels.scaleChange) 
+                           || isNaN(obj.labels.scaleMax) 
+                           || isNaN(obj.labels.scaleMin)){
+        return Promise.reject("validate failed: one or more labels variables not-exist/bad-format");
+    }        
+    if(obj.deployment.body.spec.replicas != obj.deployment.body.status.availableReplicas){
+        return Promise.reject("validate failed: availableReplicas is not match the number of replicas");
     }
-    else
-        return Promise.reject("validate falied: one or more lebels varibales not-exist/bad-format");
-    
-}
-function getDesiredReplices(obj){
-    obj.desiredReplices  = Math.max(Math.min(parseInt(obj.deployment.body.spec.replicas) + parseInt(obj.labels.scaleChange),parseInt(obj.labels.scaleMax)),parseInt(obj.labels.scaleMin));    
     return Promise.resolve(obj);
+}
+function getDesiredReplicas(obj){
+    return isDeploymentValidToScale(obj).then(() =>{
+        obj.desiredReplicas  = Math.max(Math.min(parseInt(obj.deployment.body.spec.replicas) + parseInt(obj.labels.scaleChange),parseInt(obj.labels.scaleMax)),parseInt(obj.labels.scaleMin));    
+        return Promise.resolve(obj);
+    });
 }
 function getDeployment(obj){
     return client.apis.apps.v1.namespaces(obj.labels.namespace).deployments(obj.labels.deployment).get().then(deployment => {
@@ -48,4 +50,4 @@ function getDeployment(obj){
         return Promise.resolve(obj);
     });
 }
-module.exports = {getAlerts,getAlerts,isDeplymentValidToScale,getDesiredReplices,getDeployment};
+module.exports = {getAlerts,getAlerts,scaleDeployment,getDesiredReplicas,getDeployment};

@@ -1,3 +1,9 @@
+// ready pod / available pod 
+// change request url from * to webhook
+// change to annotation mix/max
+// todo change name: prometheus pods scaler 
+// terraform run command: helm create name
+
 const port = process.env.PORT || 8080;
 const app = require('express')();
 const bodyParser = require('body-parser');
@@ -6,24 +12,21 @@ app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
-
-app.post('/*', function (req, res) {
+app.post('/webhook?', function (req, res) {
     let statusCode = 500;
-    console.log("start post request");
     utils.getAlerts({body:req.body})       
         .then(json => {
             console.log("alerts length", json.alerts.length);
-            let promises = json.alerts.map((alert) => {
+            let promises = json.alerts.map(alert => {
                 let obj = {labels:alert.labels};
                 return utils.getDeployment(obj)
-                        .then(utils.getDesiredReplices)
-                        .then(utils.isDeplymentValidToScale)
+                        .then(utils.getDesiredReplicas)
                         .then(utils.scaleDeployment);
             })
             return Promise.all(promises);
         })
         .then(json => {
-            statusCode = 200;
+            //statusCode = 200;
             console.log("---  success");
             res.writeHead(statusCode);
             res.write("print ok" + JSON.stringify(json));
@@ -36,10 +39,10 @@ app.post('/*', function (req, res) {
             res.end();
         });
 });
-app.get('/*', function (req, res) {
-    console.log("start GET request url:" + req.url);
-    res.writeHead( 500);
-    res.write("GET request: "+ req.url);
+app.all('/*', function (req, res) {
+    console.log("start 'ALL' request url:" + req.url);
+    res.writeHead(200);
+    res.write("ALL request: "+ req.url);
     res.end();
 });
 app.listen(port,() => {
