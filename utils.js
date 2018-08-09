@@ -13,24 +13,24 @@ function getAlerts(json){
     }
 }
 function scaleDeployment(obj){
-    return new Promise(resolve => {
-        const replica = {
-                spec: {
-                    replicas: obj.desiredReplicas
-                }
-            };
-        obj.replica = replica;
-        client.apis.apps.v1.namespaces(obj.labels.namespace).deployments(obj.labels.deployment).patch({ body: replica }).then(replicaModify => {
-            obj.replicaModify = replicaModify
-            resolve(obj);
-        })
+    const replica = {
+            spec: {
+                replicas: obj.desiredReplicas
+            }
+        };
+    obj.replica = replica;
+    return client.apis.apps.v1.namespaces(obj.labels.namespace).deployments(obj.labels.deployment).patch({ body: replica }).then(replicaModify => {
+        obj.replicaModify = replicaModify
+        console.log("obj",JSON.stringify(obj,null,2));
+        return obj;
     });
 }
 function isDeploymentValidToScale(obj){
+    console.log("obj",JSON.stringify(obj,null,2));
     if(!obj || !obj.labels || isNaN(obj.deployment.body.spec.replicas) 
                            || isNaN(obj.labels.scaleChange) 
-                           || isNaN(obj.labels.scaleMax) 
-                           || isNaN(obj.labels.scaleMin)){
+                           || isNaN(obj.deployment.body.metadata.annotations["prometheus-pod-scaler/scaleMax"]) 
+                           || isNaN(obj.deployment.body.metadata.annotations["prometheus-pod-scaler/scaleMin"])){
         return Promise.reject("validate failed: one or more labels variables not-exist/bad-format");
     }        
     if(obj.deployment.body.spec.replicas != obj.deployment.body.status.availableReplicas){
@@ -40,7 +40,7 @@ function isDeploymentValidToScale(obj){
 }
 function getDesiredReplicas(obj){
     return isDeploymentValidToScale(obj).then(() =>{
-        obj.desiredReplicas  = Math.max(Math.min(parseInt(obj.deployment.body.spec.replicas) + parseInt(obj.labels.scaleChange),parseInt(obj.labels.scaleMax)),parseInt(obj.labels.scaleMin));    
+        obj.desiredReplicas  = Math.max(Math.min(parseInt(obj.deployment.body.spec.replicas) + parseInt(obj.labels.scaleChange),parseInt(obj.deployment.body.metadata.annotations["prometheus-pod-scaler/scaleMax"])),parseInt(obj.deployment.body.metadata.annotations["prometheus-pod-scaler/scaleMin"]));    
         return Promise.resolve(obj);
     });
 }
