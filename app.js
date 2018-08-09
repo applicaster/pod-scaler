@@ -1,6 +1,3 @@
-// todo change name: prometheus pods scaler 
-// terraform run command: helm create name
-
 const port = process.env.PORT || 8080;
 const app = require('express')();
 const bodyParser = require('body-parser');
