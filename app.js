@@ -19,7 +19,7 @@ app.post('/webhook?', function (req, res) {
             return Promise.all(promises);
         })
         .then(json => {
-            statusCode = 200;
+            // statusCode = 200;
             console.log(`--- success with status: ${statusCode}`);
             res.writeHead(statusCode);
             res.write("OK");
