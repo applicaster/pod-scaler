@@ -1,4 +1,3 @@
-// change to annotation mix/max
 // todo change name: prometheus pods scaler 
 // terraform run command: helm create name
 
