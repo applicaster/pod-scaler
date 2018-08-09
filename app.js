@@ -6,7 +6,7 @@ app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
-app.post('/webhook?', function (req, res) {
+app.post('/webhook', function (req, res) {
     let statusCode = 500;
     utils.getAlerts({body:req.body})       
         .then(json => {

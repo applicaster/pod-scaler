@@ -21,7 +21,7 @@ function scaleDeployment(obj){
     obj.replica = replica;
     return client.apis.apps.v1.namespaces(obj.labels.namespace).deployments(obj.labels.deployment).patch({ body: replica }).then(replicaModify => {
         obj.replicaModify = replicaModify
-        if(process.env.DEBUG == "TRUE"){
+        if(process.env.POD_SCALER_DEBUG == "TRUE"){
             console.log("obj",JSON.stringify(obj,null,2));
         }
         return obj;
