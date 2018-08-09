@@ -1,60 +1,47 @@
 const port = process.env.PORT || 8080;
-
-const Client = require('kubernetes-client').Client;
-const config = require('kubernetes-client').config;
-const client = new Client({ config: config.getInCluster() });
-client.loadSpec();
-
-const express = require('express');
-let app = express();
-
-app.all('/*', function (req, res) {
-   
-    client.api.v1.pods.get().then((namespaces)=>{
-console.log("print ok -print log");
-    res.writeHead( 500);
-    res.write("print ok" + JSON.stringify(namespaces    ));
-    res.end();
-    });
-    
+const app = require('express')();
+const bodyParser = require('body-parser');
+const utils = require("./utils");
+app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+})); 
+app.post('/webhook', function (req, res) {
+    let statusCode = 500;
+    utils.getAlerts({body:req.body})       
+        .then(json => {
+            let promises = json.alerts.map(alert => {
+                let obj = {labels:alert.labels};
+                return utils.getDeployment(obj)
+                        .then(utils.getDesiredReplicas)
+                        .then(utils.scaleDeployment);
+            })
+            return Promise.all(promises);
+        })
+        .then(json => {
+            statusCode = 200;
+            console.log(`--- success with status: ${statusCode}`);
+            res.writeHead(statusCode);
+            res.write("OK");
+            res.end();
+        })
+        .catch(err => {
+            console.log("--- error",err);
+            res.writeHead(statusCode);
+            res.write("ERROR");
+            res.end();
+        });
 });
-app.listen(port);
-
-// process.on('uncaughtException', function (err, n) {
-//   console.log('uncaughtException: ' + err + " row number " + JSON.stringify(err.stack))
-// })
-// Put a friendly message on the terminal
-const mylog  = console.log;
-console.log('Server running at http://127.0.0.1:' + port + '/')
-
-
-// function getDeploymntPods(name){  
-//     return new Promise(resolve => {
-//         kubectl.pod.list({ app: name}, function(err, pods){
-//             let list  = pods.items.map((item)=>item.metadata.name);
-//             resolve(list);
-//         });
-//     })
-// }
-// function getDeploymnt(name){  
-//     return new Promise(resolve => {
-//         kubectl.command({ app: name}, function(err, pods){
-//             let list  =pods;// pods.items.map((item)=>item.metadata.name);
-//             resolve(list);
-//         });
-//     })
-// }
-// function setDeploymentScale(name,scaleTo){
-//     return new Promise(resolve => {
-//         kubectl.command(`scale deploy ${name} --replicas=${scaleTo}`,( pods)=> {
-//             resolve(pods);
-//         });
-//     });
-// }
-// function getCPU(name,scaleTo){
-//     return new Promise(resolve => {
-//         kubectl.command(`get nodes --no-headers | awk '{print $1}' | xargs -I {} sh -c 'echo {}; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo'`,( pods)=> {
-//             resolve(pods);
-//         });
-//     });
-// }
+app.all('/*', function (req, res) {
+    console.log("start request 'ALL' url:" + req.url);
+    res.writeHead(200);
+    res.write("ALL request: "+ req.url);
+    res.end();
+});
+app.listen(port,() => {
+    // Put a friendly message on the terminal
+    console.log('Server running at http://127.0.0.1:' + port + '/')
+});
+process.on('uncaughtException', (err) => {
+  console.log('uncaughtException: ' + err + " row number " + JSON.stringify(err.stack))
+});

@@ -20,6 +20,9 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: POD_SCALER_DEBUG
+          value: "TRUE"
         ports:
         - containerPort: {{ .Values.service.internalPort }}
         resources:
