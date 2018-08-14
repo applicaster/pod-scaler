@@ -21,14 +21,13 @@ app.post('/webhook', function (req, res) {
         })
         .then(json => {
             statusCode = 200;
-            console.log(`--- success with status: ${statusCode}`);
             res.writeHead(statusCode);
             res.write("OK");
             accesslog(req, res);
             res.end();
         })
         .catch(err => {
-            console.log("--- error",err);
+            console.log("--- scale error",err);
             res.writeHead(statusCode);
             res.write("ERROR");
             accesslog(req, res);
