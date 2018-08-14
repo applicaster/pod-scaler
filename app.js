@@ -2,6 +2,7 @@ const port = process.env.PORT || 8080;
 const app = require('express')();
 const bodyParser = require('body-parser');
 const utils = require("./utils");
+const accesslog = require('access-log');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
@@ -20,22 +21,23 @@ app.post('/webhook', function (req, res) {
         })
         .then(json => {
             statusCode = 200;
-            console.log(`--- success with status: ${statusCode}`);
             res.writeHead(statusCode);
             res.write("OK");
+            accesslog(req, res);
             res.end();
         })
         .catch(err => {
-            console.log("--- error",err);
+            console.log("--- scale error",err);
             res.writeHead(statusCode);
             res.write("ERROR");
+            accesslog(req, res);
             res.end();
         });
 });
-app.all('/*', function (req, res) {
-    console.log("start request 'ALL' url:" + req.url);
+app.all('/*', function (req, res) { // support health  requests
     res.writeHead(200);
-    res.write("ALL request: "+ req.url);
+    res.write("OK");
+    accesslog(req, res);
     res.end();
 });
 app.listen(port,() => {

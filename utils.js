@@ -19,16 +19,13 @@ function scaleDeployment(obj){
             }
         };
     obj.replica = replica;
+    console.log(`Scale Deployment ${obj.labels.namespace}.${obj.labels.deployment} to replicas=${obj.desiredReplicas}`);
     return client.apis.apps.v1.namespaces(obj.labels.namespace).deployments(obj.labels.deployment).patch({ body: replica }).then(replicaModify => {
-        obj.replicaModify = replicaModify
-        if(process.env.POD_SCALER_DEBUG == "TRUE"){
-            console.log("obj",JSON.stringify(obj,null,2));
-        }
+        obj.replicaModify = replicaModify;
         return obj;
     });
 }
 function isDeploymentValidToScale(obj){
-    console.log("obj",JSON.stringify(obj,null,2));
     if(!obj || !obj.labels || isNaN(obj.deployment.body.spec.replicas) 
                            || isNaN(obj.labels.scaleChange) 
                            || isNaN(obj.deployment.body.metadata.annotations["prometheus-pod-scaler/scaleMax"]) 
