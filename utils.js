@@ -35,7 +35,7 @@ function isDeploymentValidToScale(obj){
                            || isNaN(obj.deployment.body.metadata.annotations["prometheus-pod-scaler/scaleMin"])){
         return Promise.reject("validate failed: one or more labels variables not-exist/bad-format");
     }        
-    if(obj.deployment.body.spec.replicas != obj.deployment.body.status.availableReplicas){
+    if(obj.deployment.body.spec.replicas != obj.deployment.body.status.availableReplicas && parseInt(obj.labels.scaleChange) > 0){
         return Promise.reject("validate failed: availableReplicas is not match the number of replicas");
     }
     return Promise.resolve(obj);
